@@ -22,7 +22,7 @@ To estimate the model for the noise in the CD4 counts, we use the replicate meas
 
   >Daniel Francois Venter, Willem, Matthew F. Chersich, Mohammed Majam, Godspower Akpomiemie, Natasha Arulappan, Michelle Moorhouse, Nonkululeko Mashabane, and Deborah K. Glencross. "CD4 cell count variability with repeat testing in South Africa: Should reporting include both absolute counts and ranges of plausible values?." International journal of STD & AIDS 29, no. 11 (2018): 1048-1056.
 
-Instructions for accessing the dataset are specified in the above paper.
+Instructions for accessing the dataset are specified in the above paper (by contacting the paper's corresponding author). The code below assumes that this dataset has been saved as `Venter_CD4.data` in this folder.
 
 We provide the code for estimating the noise level as ν=0.19 and reproducing Figure 2 of the manuscript in the file: 
 * `cd4_noise.jl`
