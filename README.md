@@ -21,6 +21,8 @@ Pkg.activate(".")
 Pkg.instantiate()
 ```
 
+# Repository structure
+
 There are three folders in this repository.
 
 * `simulations`: Replication of simulation study
