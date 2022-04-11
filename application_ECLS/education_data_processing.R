@@ -27,20 +27,12 @@ get_outcome = function(d, cutoff) {
   return(result)
 }
 
-# the ground truth for E[Y(1) - Y(0)|Z]
-get_true_tau = function(u) {
-  fit = smooth.spline(true_d$base_score, true_d$year2_score - true_d$year1_score)
-  return(predict(fit, u)$y)
-}
 
 true_d = get_data(data$X2MTHETK5, data$X2MSETHK5, data$X4MTHETK5, data$X6MTHETK5)
-c = -0.7
-tau_true = get_true_tau(c)
+c = -0.2
 d = get_outcome(true_d, c)
 z = d$z
-ord_z = order(z)
-z = z[ord_z]
-Y = d$Y[ord_z]
-std = d$std[ord_z]
+std = d$std
+Y = d$Y
 
-data = data.frame(z= z, Y = Y, std = std, tau_true = tau_true)
+data = data.frame(z= z, Y = Y, std = std)
