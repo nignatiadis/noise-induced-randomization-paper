@@ -25,7 +25,10 @@ get_outcome <- function(d, cutoff) {
   Y[!idx] = d$year1_score[!idx]
   std = d$base_std
   result = data.frame(z = d$base_score,
-                      Y = Y, std = std)
+                      Y = Y, 
+                      std = std,
+                      Y1 = d$year2_score, 
+                      Y0 = d$year1_score)
   return(result)
 }
 
@@ -37,14 +40,16 @@ d <- get_outcome(true_d, c)
 
 # Save artificial RDD dataset
 
-write.csv(d, "ecls_RD.csv", row.names=FALSE)
-
+# Generate as below for RegressionDiscontinuity.jl package
+# write.csv(d, "ecls_RD.csv", row.names=FALSE)
+# We store it below here after using the smoothing spline to also impute E[Y(1)-Y(0)|Z]
 
 
 # Compute "ground truth" for E[Y(1) - Y(0)|Z]
+spline_fit <-  smooth.spline(true_d$base_score, true_d$year2_score - true_d$year1_score)
+
 get_true_tau <- function(u) {
-  fit <- smooth.spline(true_d$base_score, true_d$year2_score - true_d$year1_score)
-  return(predict(fit, u)$y)
+  return(predict(spline_fit, u)$y)
 }
 
 cs <- seq(from = -0.4, to = 0.0, by = 0.02)
@@ -54,6 +59,8 @@ rdd_target_pseudo_ground_truth <- sapply(cs, get_true_tau)
 write.csv(data.frame(basescore=cs, truth=rdd_target_ground_truth), 
       "rdd_target_pseudo_ground_truth.csv", row.names=FALSE)
 
+d$smooth_spline <- sapply(d$z, get_true_tau)
+write.csv(d, "ecls_RD.csv", row.names=FALSE)
 
 ## Compute "ground truth" policy parameter for C' where C' varies 
 
