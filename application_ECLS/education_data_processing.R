@@ -46,7 +46,6 @@ get_true_tau = function(u) {
   return(predict(fit, u)$y)
 }
 
-## getting policy parmeter for C' where C' varies 
 c = -0.2
 d = get_outcome(true_d, c)
 z = d$z
@@ -54,8 +53,12 @@ Y = d$Y
 std = d$std
 variance = min(std)^2
 my_seq = seq(from = -0.2, to = 0.2, by = 0.02)
-my_seq = my_seq[my_seq != 0]
 
+## getting rd parameter
+rd_ruth = sapply(c+my_seq, get_true_tau)
+
+## getting policy parmeter for C' where C' varies 
+my_seq = my_seq[my_seq != 0]
 true_seq = numeric(length(my_seq))
 est = GLmix(z, hist = TRUE, sigma = sqrt(variance))
 # given the observed z, return an estimated density at a vector of values
