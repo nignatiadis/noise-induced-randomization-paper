@@ -1,5 +1,7 @@
 library(readstata13)
+library(REBayes)
 
+setwd("~/Desktop/stanford/Autumn 2019/Stefan/code")
 # get data 
 data = read.dta13("data/ECLS_data.dta")
 ##cleaning up NA's 
@@ -34,5 +36,42 @@ d = get_outcome(true_d, c)
 z = d$z
 std = d$std
 Y = d$Y
-
 data = data.frame(z= z, Y = Y, std = std)
+
+
+# getting ground truth 
+# the ground truth for E[Y(1) - Y(0)|Z]
+get_true_tau = function(u) {
+  fit = smooth.spline(true_d$base_score, true_d$year2_score - true_d$year1_score)
+  return(predict(fit, u)$y)
+}
+
+## getting policy parmeter for C' where C' varies 
+c = -0.2
+d = get_outcome(true_d, c)
+z = d$z
+Y = d$Y
+std = d$std
+variance = min(std)^2
+my_seq = seq(from = -0.2, to = 0.2, by = 0.02)
+my_seq = my_seq[my_seq != 0]
+
+true_seq = numeric(length(my_seq))
+est = GLmix(z, hist = TRUE, sigma = sqrt(variance))
+# given the observed z, return an estimated density at a vector of values
+z_dens = function(est, vec) {
+  mat = as.matrix(sapply(vec, dnorm, mean = est$x, sd = est$sigma))
+  result = est$y%*%mat
+  return(result)
+}
+
+for (i in 1:length(my_seq)){
+  if (my_seq[i] >= 0) {
+    true_seq[i] = integrate(function(z) get_true_tau(z)*z_dens(est, z), c, c+my_seq[i])$value/integrate(function(z) z_dens(est, z), c, c+my_seq[i])$value
+  }
+  else{
+    true_seq[i] = integrate(function(z) get_true_tau(z)*z_dens(est, z), c+my_seq[i], c)$value/integrate(function(z) z_dens(est, z), c+my_seq[i], c)$value
+  }
+}
+
+policy_truth = data.frame(c_prime = c + my_seq, policy_par = true_seq)
