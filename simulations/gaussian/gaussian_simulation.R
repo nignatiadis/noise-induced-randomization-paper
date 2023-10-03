@@ -2,12 +2,16 @@ args <- commandArgs(TRUE)
 instance_number <- as.numeric(args[1])
 
 n_parallel <- 20
-parameter_mat <- expand.grid(n=c(1000,2000, 10000),
-                             idx_parallel = 1:n_parallel)
+parameter_mat <- expand.grid(n=c(10000),
+                             idx_parallel = 1:n_parallel,
+                             distrib = c("normal", "t")
+                             )
                              
 idx_parallel <- parameter_mat$idx_parallel[instance_number]
 n <- parameter_mat$n[instance_number]
-nreps <- 50 #100
+distrib <- parameter_mat$distrib[instance_number]
+
+nreps <- 50
 
 library(rdrobust)
 library(parallel)
@@ -47,7 +51,8 @@ jl$command("function gaussian_nir(zs, Ys, cutoff, std)
 
 
 
-sds <- seq(0.1, by = 0.1, to = 0.9)
+
+sds <- seq(0.3, by = 0.2, to = 0.9)
 true_tau <- 0.0
 c <- 0.0
 
@@ -60,6 +65,7 @@ res_tibble <- tibble(
   n = integer(),
   idx_parallel = integer(),
   rep = integer(),
+  distrib = character(),
   method = character(),
   sd = numeric()
 )
@@ -68,7 +74,14 @@ res_tibble <- tibble(
 for (i in seq_len(nreps)) {
   U <- rnorm(n, mean = 0.0, sd = 1.0)
   Y_obs <- rbinom(n, 1, prob = 0.25 * (U <= c) + 0.75 * (U > c))
-  z <- rnorm(n, mean = U, sd = 0.5)
+
+  if (distrib == "normal"){
+    noise <- rnorm(n)
+  } else if (distrib == "t"){
+    noise <- rt(n, df=5)
+  }
+
+  z <- noise * 0.5 + U
   w <- as.numeric(z >= c)
 
   rdrobust_fit <- try(rdrobust(Y_obs, z, c))
@@ -81,6 +94,7 @@ for (i in seq_len(nreps)) {
       n = n,
       idx_parallel = idx_parallel,
       rep = i,
+      distrib = distrib,
       method = "rdrobust",
       sd = 0
     )
@@ -96,6 +110,7 @@ for (i in seq_len(nreps)) {
         n = n,
         idx_parallel = idx_parallel,
         rep = i,
+        distrib = distrib,
         method = "NIR",
         sd = sd
       )
@@ -104,9 +119,6 @@ for (i in seq_len(nreps)) {
 }
 
 
-filename <- paste(toString(idx_parallel), toString(n), sep = "_")
+filename <- paste(toString(idx_parallel), toString(n), distrib, sep = "_")
 filename <-  paste0("gaussian_", filename, ".Rds")
 saveRDS(res_tibble, file.path("simulation_results", filename))
-
-
-#bla <- res_tibble %>% mutate(lower = est - halfci, upper = est+halfci) %>% select(-n)
