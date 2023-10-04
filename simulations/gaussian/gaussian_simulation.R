@@ -1,17 +1,17 @@
 args <- commandArgs(TRUE)
 instance_number <- as.numeric(args[1])
 
-n_parallel <- 20
+n_parallel <- 100
 parameter_mat <- expand.grid(n=c(10000),
-                             idx_parallel = 1:n_parallel,
-                             distrib = c("normal", "t")
+                             distrib = c("normal", "t"),
+                             idx_parallel = 1:n_parallel
                              )
                              
 idx_parallel <- parameter_mat$idx_parallel[instance_number]
 n <- parameter_mat$n[instance_number]
 distrib <- parameter_mat$distrib[instance_number]
 
-nreps <- 50
+nreps <- 10
 
 library(rdrobust)
 library(parallel)
@@ -28,7 +28,9 @@ for (i in seq_len(n_parallel)) {
   s <- nextRNGStream(s)
   seed_list[[i]] <- s
 }
-set.seed(seed_list[[idx_parallel]])
+
+.Random.seed <<- seed_list[[idx_parallel]]
+
 
 
 # jl$library("Pkg")
