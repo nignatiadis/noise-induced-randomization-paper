@@ -3,14 +3,14 @@ instance_number <- as.numeric(args[1])
 
 n_parallel <- 100
 parameter_mat <- expand.grid(n=c(10000),
-                             distrib = c("normal", "t"),
+                             distrib = c("normal", "t", "laplace"),
                              idx_parallel = 1:n_parallel
                              )
                              
 idx_parallel <- parameter_mat$idx_parallel[instance_number]
 n <- parameter_mat$n[instance_number]
 distrib <- parameter_mat$distrib[instance_number]
-
+print(distrib)
 nreps <- 10
 
 library(rdrobust)
@@ -80,9 +80,11 @@ for (i in seq_len(nreps)) {
   if (distrib == "normal"){
     noise <- rnorm(n)
   } else if (distrib == "t"){
-    noise <- rt(n, df=5)
+    noise <- rt(n, df=6) * sqrt(4/6)
+  } else if (distrib == "laplace"){
+    unif_noise <-stats::runif(n)-0.5
+    noise <-1/sqrt(2)*sign(unif_noise)*log(1-2*abs(unif_noise))
   }
-
   z <- noise * 0.5 + U
   w <- as.numeric(z >= c)
 
