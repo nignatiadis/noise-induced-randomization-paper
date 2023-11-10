@@ -10,8 +10,10 @@ parameter_mat <- expand.grid(n=c(10000),
 idx_parallel <- parameter_mat$idx_parallel[instance_number]
 n <- parameter_mat$n[instance_number]
 distrib <- parameter_mat$distrib[instance_number]
+
 print(distrib)
 nreps <- 10
+
 
 library(rdrobust)
 library(parallel)
