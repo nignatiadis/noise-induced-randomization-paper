@@ -11,7 +11,7 @@ idx_parallel <- parameter_mat$idx_parallel[instance_number]
 n <- parameter_mat$n[instance_number]
 distrib <- parameter_mat$distrib[instance_number]
 
-nreps <- 10
+nreps <- 1
 
 library(rdrobust)
 library(parallel)
@@ -79,8 +79,12 @@ for (i in seq_len(nreps)) {
 
   if (distrib == "normal"){
     noise <- rnorm(n)
-  } else if (distrib == "t"){
-    noise <- rt(n, df=5)
+  } else if (distrib == "tst"){
+    noise <- rt(n, df=6) *  sqrt(4/6)
+  }
+  } else if (distrib == "laplace"){
+    unif_noise <-stats::runif(n)-0.5
+    noise <-1/sqrt(2)*sign(unif_noise)*log(1-2*abs(unif_noise))
   }
 
   z <- noise * 0.5 + U
