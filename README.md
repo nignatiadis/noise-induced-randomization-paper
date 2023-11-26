@@ -11,15 +11,10 @@ See [RegressionDiscontinuity.jl](https://github.com/nignatiadis/RegressionDiscon
 
 # Software used
 
-* [R](https://www.r-project.org/) version 4.0.2.
-* The [Mosek](https://www.mosek.com/) convex programming solver, version 9.2, was used. Mosek requires a license (there is an option for a free academic license).
-* [Julia](https://julialang.org/) version 1.6.2.
-* All required Julia packages and their versions (for each analysis) are specified in the `Project.toml` and `Manifest.toml` files (within the sub-folders). They may be installed automatically by starting a Julia session in the corresponding sub-folder and typing:
-```julia
-using Pkg
-Pkg.activate(".")
-Pkg.instantiate()
-```
+* [R](https://www.r-project.org/) 
+* The [Mosek](https://www.mosek.com/) convex programming solverwas used. Mosek requires a license (there is an option for a free academic license).
+* [Julia](https://julialang.org/) 
+
 
 # Repository structure
 
