@@ -6,7 +6,7 @@ parameter_mat <- expand.grid(n=c(10000),
                              distrib = c("normal", "t", "laplace"),
                              idx_parallel = 1:n_parallel
                              )
-                             
+
 idx_parallel <- parameter_mat$idx_parallel[instance_number]
 n <- parameter_mat$n[instance_number]
 distrib <- parameter_mat$distrib[instance_number]
@@ -23,7 +23,7 @@ library(tibble)
 jl <- julia_setup()
 
 RNGkind("L'Ecuyer-CMRG")
-set.seed(2002) 
+set.seed(2002)
 s <- .Random.seed
 seed_list <- list()
 for (i in seq_len(n_parallel)) {
@@ -80,9 +80,9 @@ for (i in seq_len(nreps)) {
   Y_obs <- rbinom(n, 1, prob = 0.25 * (U <= c) + 0.75 * (U > c))
 
   if (distrib == "normal"){
-    noise <- rnorm(n)
+    noise <- stats::rnorm(n)
   } else if (distrib == "t"){
-    noise <- rt(n, df=6) * sqrt(4/6)
+    noise <- stats::rt(n, df=6) * sqrt(4/6)
   } else if (distrib == "laplace"){
     unif_noise <-stats::runif(n)-0.5
     noise <-1/sqrt(2)*sign(unif_noise)*log(1-2*abs(unif_noise))
@@ -94,7 +94,7 @@ for (i in seq_len(nreps)) {
 
   if (!inherits(rdrobust_fit, "try-error")) {
     res_tibble <- add_row(res_tibble,
-      est = rdrobust_fit$tau_bc[2] - rdrobust_fit$tau_bc[1],
+      est = rdrobust_fit$coef[3],
       halfci = (rdrobust_fit$ci[3, 2] - rdrobust_fit$ci[3, 1]) / 2,
       true_tau = true_tau,
       n = n,
