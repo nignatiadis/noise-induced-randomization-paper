@@ -1,6 +1,8 @@
 library(tidyverse)
 library(cowplot)
-files <- list.files(pattern = "\\.Rds$")
+files <- list.files(path = "simulation_results",
+  pattern = "\\.Rds$",
+  full.names = TRUE)
 
 # Load all .Rds files into a list
 loaded_files <- lapply(files, function(file) {
@@ -10,32 +12,37 @@ loaded_files <- lapply(files, function(file) {
 
 df <- bind_rows(loaded_files)
 
-df <- mutate(df, covers = abs(true_tau - est) <= halfci, abs_error =abs(est))
-            
+df <- mutate(df,
+  covers = abs(true_tau - est) <= halfci, 
+  abs_error = abs(true_tau - est)
+)
 
 
 
 
 summarize_df <- group_by(df, method, sd, distrib, n) %>%
-  summarize(coverage = mean(covers), halfci = mean(halfci), mae = mean(abs_error), nreps=n()) 
+  summarize(coverage = mean(covers),
+            halfci = mean(halfci),
+            mae = mean(abs_error),
+            nreps = n())
 
-rdrobust_rows <- summarize_df %>% 
-  filter(method == "rdrobust") %>% 
-  select(-method, -sd) %>% 
+rdrobust_rows <- summarize_df %>%
+  filter(method == "rdrobust") %>%
+  select(-method, -sd) %>%
   mutate(sd = 0.1)  # manually positioning 'rdrobust' points
 
-# Filter rows for the 'NIR' method
-nir_rows <- summarize_df %>% 
+# Filter rows for NIR
+nir_rows <- summarize_df %>%
   filter(method == "NIR")
 
-# Combine 'rdrobust' and 'NIR' rows
+# Combine rdrobust and NIR rows
 plot_data <- bind_rows(rdrobust_rows, nir_rows)
 
 # Creating the plot
-p1 <- ggplot(plot_data, aes(x = sd, y = coverage, color = distrib, shape=distrib)) +
+p1 <- ggplot(plot_data, aes(x = sd, y = coverage, color = distrib, shape = distrib)) +
   geom_point(data = rdrobust_rows, aes(x = 0.1), size = 3) +
-  geom_point(data = nir_rows, aes(color = distrib, shape=distrib), size = 3) +  # Add points for NIR
-  geom_line(data = nir_rows, aes(linetype = distrib), size = 1) +  # Use only NIR rows for lines
+  geom_point(data = nir_rows, aes(color = distrib, shape = distrib), size = 3) +  # Add points for NIR
+  geom_line(data = nir_rows, aes(linetype = distrib), linewidth = 1) +  # Use only NIR rows for lines
   geom_vline(xintercept = 0.15, color = "grey") +
   labs(x = NULL, y = "Coverage") +
   theme_cowplot() +
@@ -50,25 +57,25 @@ p1 <- ggplot(plot_data, aes(x = sd, y = coverage, color = distrib, shape=distrib
   scale_color_manual(
     values = c("normal" = "purple", "t" = "orange", "laplace"="darkgreen"),
     breaks = c("normal", "t", "laplace"),  # Order
-    labels = c("Gaussian", "t (6 df)", "Laplace")  # Descriptive labels
+    labels = c("Gaussian", "t (6 df)", "Laplace")
   ) +
   scale_linetype_manual(
-    values = c("normal" = "solid", "t" = "dashed", "laplace"="dotted"),
+    values = c("normal" = "solid", "t" = "dashed", "laplace" = "dotted"),
     breaks = c("normal", "t", "laplace"),  # Order
-    labels = c("Gaussian", "t (6 df)", "Laplace")  # Descriptive labels
+    labels = c("Gaussian", "t (6 df)", "Laplace")
   )  +
   scale_shape_manual(
-    values = c("normal" = 16, "t" = 17, "laplace" = 18),  # Using default ggplot2 shapes
+    values = c("normal" = 16, "t" = 17, "laplace" = 18),
     breaks = c("normal", "t", "laplace"),
     labels = c("Gaussian", "t (6 df)", "Laplace")
   ) +
   geom_hline(yintercept = 0.95, color="grey", linetype="dashed")
 p1
 
-p2 <- ggplot(plot_data, aes(x = sd, y = halfci, color = distrib, shape=distrib)) +
+p2 <- ggplot(plot_data, aes(x = sd, y = halfci, color = distrib, shape = distrib)) +
   geom_point(data = rdrobust_rows, aes(x = 0.1), size = 3) +
-  geom_point(data = nir_rows, aes(color = distrib, shape=distrib), size = 3) +  # Add points for NIR
-  geom_line(data = nir_rows, aes(linetype = distrib), size = 1) +  # Use only NIR rows for lines
+  geom_point(data = nir_rows, aes(color = distrib, shape = distrib), size = 3) +  # Add points for NIR
+  geom_line(data = nir_rows, aes(linetype = distrib), linewidth = 1) +  # Use only NIR rows for lines
   geom_vline(xintercept = 0.15, color = "grey") +
   labs(x = NULL, y = "Length") +
   theme_cowplot() +
@@ -83,24 +90,24 @@ p2 <- ggplot(plot_data, aes(x = sd, y = halfci, color = distrib, shape=distrib))
   scale_color_manual(
     values = c("normal" = "purple", "t" = "orange", "laplace"="darkgreen"),
     breaks = c("normal", "t", "laplace"),  # Order
-    labels = c("Gaussian", "t (6 df)", "Laplace")  # Descriptive labels
+    labels = c("Gaussian", "t (6 df)", "Laplace")
   ) +
   scale_linetype_manual(
     values = c("normal" = "solid", "t" = "dashed", "laplace"="dotted"),
     breaks = c("normal", "t", "laplace"),  # Order
-    labels = c("Gaussian", "t (6 df)", "Laplace")  # Descriptive labels
+    labels = c("Gaussian", "t (6 df)", "Laplace")
   )  +
   scale_shape_manual(
-    values = c("normal" = 16, "t" = 17, "laplace" = 18),  # Using default ggplot2 shapes
+    values = c("normal" = 16, "t" = 17, "laplace" = 18),
     breaks = c("normal", "t", "laplace"),
     labels = c("Gaussian", "t (6 df)", "Laplace")
   ) 
 p2
 
-p3 <- ggplot(plot_data, aes(x = sd, y = mae, color = distrib, shape=distrib)) +
+p3 <- ggplot(plot_data, aes(x = sd, y = mae, color = distrib, shape = distrib)) +
   geom_point(data = rdrobust_rows, aes(x = 0.1), size = 3) +
   geom_point(data = nir_rows, aes(color = distrib, shape=distrib), size = 3) +  # Add points for NIR
-  geom_line(data = nir_rows, aes(linetype = distrib), size = 1) +  # Use only NIR rows for lines
+  geom_line(data = nir_rows, aes(linetype = distrib), linewidth = 1) +  # Use only NIR rows for lines
   geom_vline(xintercept = 0.15, color = "grey") +
   labs(x = NULL, y = "MAE") +
   theme_cowplot() +
@@ -116,20 +123,21 @@ p3 <- ggplot(plot_data, aes(x = sd, y = mae, color = distrib, shape=distrib)) +
   scale_color_manual(
     values = c("normal" = "purple", "t" = "orange", "laplace"="darkgreen"),
     breaks = c("normal", "t", "laplace"),  # Order
-    labels = c("Gaussian", "t (6 df)", "Laplace")  # Descriptive labels
+    labels = c("Gaussian", "t (6 df)", "Laplace")
   ) +
   scale_linetype_manual(
     values = c("normal" = "solid", "t" = "dashed", "laplace"="dotted"),
     breaks = c("normal", "t", "laplace"),  # Order
-    labels = c("Gaussian", "t (6 df)", "Laplace")  # Descriptive labels
+    labels = c("Gaussian", "t (6 df)", "Laplace")
   )  +
   scale_shape_manual(
-    values = c("normal" = 16, "t" = 17, "laplace" = 18),  # Using default ggplot2 shapes
+    values = c("normal" = 16, "t" = 17, "laplace" = 18),
     breaks = c("normal", "t", "laplace"),
     labels = c("Gaussian", "t (6 df)", "Laplace")
-  ) 
+  )
 p3
-# Creating the plot
+
+# Saving the plots
 
 ggsave2("misspecification_coverage.pdf", p1, width=11, height=9, units="cm")
 ggsave2("misspecification_length.pdf", p2, width=11, height=9, units="cm")
