@@ -35,8 +35,8 @@ for (i in seq_len(n_parallel)) {
 
 
 
-# jl$library("Pkg")
-# jl$command('Pkg.activate(".")')
+jl$library("Pkg")
+jl$command('Pkg.activate(".")')
 jl$library("Empirikos")
 jl$library("RegressionDiscontinuity")
 jl$library("MosekTools")
